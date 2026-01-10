@@ -60,16 +60,13 @@ function renderTimestamp(timestamp) {
     
     const date = new Date(timestamp);
     const options = { 
-        weekday: 'long', 
-        year: 'numeric', 
-        month: 'long', 
+        month: 'short', 
         day: 'numeric',
         hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit'
+        minute: '2-digit'
     };
     
-    timestampEl.textContent = `LAST UPDATE: ${date.toLocaleString('en-US', options)}`;
+    timestampEl.textContent = `Updated: ${date.toLocaleString('en-US', options)}`;
 }
 
 function renderBtc(currencies) {

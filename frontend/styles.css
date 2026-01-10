@@ -33,11 +33,11 @@ body {
 }
 
 .timestamp {
-    font-size: 1.3rem;
-    font-weight: 700;
+    font-size: 0.95rem;
+    font-weight: 600;
     color: var(--accent);
     text-align: center;
-    margin: 1.5rem 0;
+    margin: 1rem 0;
     letter-spacing: 0.05em;
 }
 
@@ -238,10 +238,33 @@ canvas {
     .topbar {
         flex-direction: column;
         align-items: flex-start;
+        padding: 1rem 0;
     }
 
     body {
         padding: 0 0.8rem 1.4rem;
+    }
+
+    .currency-item {
+        padding: 0.8rem;
+        margin-bottom: 0.6rem;
+    }
+
+    .currency-name {
+        font-size: 1rem;
+    }
+
+    .mcap {
+        font-size: 0.9rem;
+        padding-left: 0;
+    }
+
+    .card {
+        padding: 0.8rem;
+    }
+
+    h1 {
+        font-size: 1.5rem;
     }
 }
 
