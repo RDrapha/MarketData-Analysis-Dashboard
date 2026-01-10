@@ -1,7 +1,8 @@
-// Local development: 
-// const API_URL = "http://localhost:8000/api/market-data";
-// Production:
 const API_URL = "https://marketdata-analysis-dashboard-production.up.railway.app/api/market-data";
+// const API_URL = "http://localhost:8000/api/market-data"; // Local development
+const CACHE_KEY = "btc_prices_cache";
+const AUTO_UPDATE_INTERVAL = 30000; // 30 seconds
+
 const state = {
     lastData: null,
     loading: false
@@ -46,6 +47,10 @@ async function loadData() {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         state.lastData = data;
+        
+        // Save to localStorage for offline access
+        localStorage.setItem(CACHE_KEY, JSON.stringify(data));
+        
         renderTimestamp();
         renderBtc(data?.currencies);
     } catch (err) {
@@ -53,6 +58,23 @@ async function loadData() {
     } finally {
         setLoading(false);
     }
+}
+
+function loadCachedData() {
+    const cached = localStorage.getItem(CACHE_KEY);
+    if (cached) {
+        try {
+            const data = JSON.parse(cached);
+            state.lastData = data;
+            renderTimestamp();
+            renderBtc(data?.currencies);
+            return true;
+        } catch (e) {
+            console.error("Failed to load cached data", e);
+            return false;
+        }
+    }
+    return false;
 }
 
 function renderTimestamp() {
@@ -114,3 +136,13 @@ function setLoading(flag) {
 }
 
 refreshBtn.addEventListener("click", () => loadData());
+document.addEventListener("DOMContentLoaded", () => {
+    // Load cached data immediately if available
+    loadCachedData();
+    
+    // Then fetch fresh data
+    loadData();
+    
+    // Auto-update every 30 seconds
+    setInterval(() => loadData(), AUTO_UPDATE_INTERVAL);
+});
