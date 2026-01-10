@@ -65,3 +65,12 @@ Planned next steps:
 This project is for educational and analytical purposes only.  
 It does **not** provide financial advice, trading signals, or price predictions.
 
+---
+
+## License
+
+Copyright (c) 2026 RD
+
+This software is provided for private, non-commercial use only.
+Unauthorized commercial use is prohibited.
+
