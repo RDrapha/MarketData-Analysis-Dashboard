@@ -205,3 +205,10 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# Local market data
+*.json
+
+# Optional: lokale Chart-Images oder Export-Dateien
+*.png
+*.svg
