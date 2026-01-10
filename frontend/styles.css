@@ -1,1 +1,247 @@
+:root {
+	--bg: #0b1224;
+	--card: #0f172a;
+	--card-muted: #0c1528;
+	--text: #e2e8f0;
+	--muted: #9ca3af;
+	--accent: #f59e0b;
+	--accent-soft: rgba(245, 158, 11, 0.18);
+	--accent-2: #38bdf8;
+	--border: rgba(255, 255, 255, 0.06);
+	--shadow: 0 20px 45px rgba(0, 0, 0, 0.35);
+	--radius: 18px;
+}
+
+* {
+	box-sizing: border-box;
+}
+
+body {
+	margin: 0;
+	padding: 0 1.2rem 2rem;
+	font-family: "Space Grotesk", "Segoe UI", sans-serif;
+	background: radial-gradient(circle at 20% 20%, rgba(56, 189, 248, 0.09), transparent 30%),
+		radial-gradient(circle at 80% 10%, rgba(245, 158, 11, 0.12), transparent 28%),
+		var(--bg);
+	color: var(--text);
+	min-height: 100vh;
+}
+
+.container {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.timestamp {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--accent);
+    text-align: center;
+    margin: 1.5rem 0;
+    letter-spacing: 0.05em;
+}
+
+.topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1.5rem 0 1rem;
+}
+
+.eyebrow {
+	text-transform: uppercase;
+	letter-spacing: 0.12em;
+	color: var(--accent-2);
+	font-size: 0.78rem;
+	margin-bottom: 0.2rem;
+}
+
+.subhead {
+	color: var(--muted);
+}
+
+.actions {
+	display: flex;
+	align-items: center;
+	gap: 0.6rem;
+}
+
+.grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+	gap: 1.2rem;
+}
+
+.card {
+	background: var(--card);
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	padding: 1.2rem 1.1rem;
+	box-shadow: var(--shadow);
+}
+
+.highlight {
+	background: linear-gradient(145deg, rgba(245, 158, 11, 0.1), rgba(56, 189, 248, 0.06));
+}
+
+.muted-card {
+	background: var(--card-muted);
+}
+
+.card-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 0.8rem;
+	margin-bottom: 0.8rem;
+}
+
+.metric-row {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+	gap: 1rem;
+	margin-bottom: 1rem;
+}
+
+.metric {
+	font-size: 1.6rem;
+	font-weight: 700;
+}
+
+.label {
+	color: var(--muted);
+	font-size: 0.9rem;
+}
+
+.muted {
+	color: var(--muted);
+}
+
+.fx-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+	gap: 0.6rem;
+}
+
+.fx-item {
+	padding: 0.7rem;
+	border: 1px solid var(--border);
+	border-radius: 12px;
+	background: rgba(255, 255, 255, 0.02);
+}
+
+.pill {
+	padding: 0.35rem 0.65rem;
+	background: rgba(56, 189, 248, 0.14);
+	color: #e0f2fe;
+	border-radius: 999px;
+	font-weight: 600;
+	border: 1px solid rgba(56, 189, 248, 0.4);
+}
+
+.table-wrapper {
+	overflow-x: auto;
+}
+
+table {
+	width: 100%;
+	border-collapse: collapse;
+}
+
+th, td {
+	text-align: left;
+	padding: 0.75rem 0.5rem;
+	border-bottom: 1px solid var(--border);
+}
+
+th {
+	color: var(--muted);
+	font-weight: 600;
+}
+
+tr:hover td {
+	background: rgba(255, 255, 255, 0.02);
+}
+
+.ghost {
+	background: rgba(255, 255, 255, 0.04);
+	border: 1px solid var(--border);
+	color: var(--text);
+	padding: 0.5rem 0.8rem;
+	border-radius: 12px;
+	cursor: pointer;
+	font-weight: 600;
+}
+
+.ghost:disabled {
+	opacity: 0.6;
+	cursor: not-allowed;
+}
+
+select.ghost {
+	appearance: none;
+	padding-right: 2rem;
+}
+
+.toast {
+	position: fixed;
+	bottom: 1.2rem;
+	right: 1.2rem;
+	background: #ef4444;
+	color: #fff;
+	padding: 0.9rem 1.1rem;
+	border-radius: 12px;
+	box-shadow: var(--shadow);
+}
+
+.hidden {
+	display: none;
+}
+
+canvas {
+	width: 100%;
+}
+
+.currency-item {
+    padding: 1.2rem;
+    margin-bottom: 0.8rem;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.currency-item:last-child {
+    margin-bottom: 0;
+}
+
+.currency-name {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--text);
+}
+
+.mcap {
+    font-size: 1rem;
+    color: var(--muted);
+    padding-left: 1rem;
+}
+
+.value {
+    color: var(--accent);
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+@media (max-width: 720px) {
+    .topbar {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    body {
+        padding: 0 0.8rem 1.4rem;
+    }
+}
 

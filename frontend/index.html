@@ -1,1 +1,36 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>BTC & ETF Dashboard</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
+	<link rel="stylesheet" href="styles.css">
+	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <header class="topbar">
+        <div>
+            <h1>Current BTC Prices</h1>
+            <p class="subhead">Live Bitcoin prices and market capitalization in all major currencies.</p>
+        </div>
+        <div class="actions">
+            <button id="refresh-btn" class="ghost">Reload</button>
+        </div>
+    </header>
+
+    <main class="container">
+        <div id="timestamp" class="timestamp"></div>
+        <section class="card">
+            <div id="btc-list"></div>
+        </section>
+    </main>
+
+    <div id="toast" class="toast hidden">Loading failed.</div>
+
+    <script src="scripts.js"></script>
+</body>
+</html>
 

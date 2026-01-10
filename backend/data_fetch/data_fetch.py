@@ -33,6 +33,12 @@ TIMEFRAMES = {
 # Update interval in seconds for realtime BTC price
 UPDATE_INTERVAL = 60  # 1 minute
 
+# Cache settings for historical data (CoinGecko rate limits are stricter for history)
+HISTORY_TTL_SECONDS = 1800  # 30 minutes
+# Runtime cache
+_HISTORY_CACHE = None
+_HISTORY_CACHE_TS = 0
+
 # Output JSON file
 OUTPUT_FILE = "market_data.json"
 
@@ -80,6 +86,18 @@ def fetch_btc_history():
             history_data[label] = []
     return history_data
 
+
+def get_history(ttl_seconds: int = HISTORY_TTL_SECONDS):
+    """Return cached historical data to limit CoinGecko calls."""
+    global _HISTORY_CACHE, _HISTORY_CACHE_TS
+    now = time.time()
+    if _HISTORY_CACHE and (now - _HISTORY_CACHE_TS) < ttl_seconds:
+        return _HISTORY_CACHE
+
+    _HISTORY_CACHE = fetch_btc_history()
+    _HISTORY_CACHE_TS = now
+    return _HISTORY_CACHE
+
 # ----------------------------
 # FUNCTION TO FETCH ETF DATA
 # ----------------------------
@@ -98,6 +116,23 @@ def fetch_etf_data(btc_usd):
             etf_data[ticker] = {"error": str(e)}
     return etf_data
 
+
+def build_market_snapshot(history_ttl_seconds: int = HISTORY_TTL_SECONDS):
+    """Fetch current snapshot: BTC prices, market cap, history, ETF quotes."""
+    btc_prices, market_cap = fetch_btc_prices()
+    etfs = fetch_etf_data(btc_prices.get("usd"))
+    history = get_history(ttl_seconds=history_ttl_seconds)
+
+    return {
+        "timestamp": datetime.now().isoformat(),
+        "BTC": {
+            "prices": btc_prices,
+            "market_cap": market_cap,
+            "history": history
+        },
+        "ETFs": etfs
+    }
+
 # ----------------------------
 # MAIN LOOP FOR REALTIME UPDATES
 # ----------------------------
@@ -106,29 +141,9 @@ def main_loop():
     Main loop: fetch BTC realtime every minute, update JSON file.
     Historical and ETF data are fetched once at start.
     """
-    print("Fetching initial historical and ETF data...")
-    history = fetch_btc_history()
-
-    # Initial BTC price fetch for ETF conversion
-    btc_prices, market_cap = fetch_btc_prices()
-    etfs = fetch_etf_data(btc_prices.get("usd"))
-
     while True:
-        # Fetch realtime BTC prices
-        btc_prices, market_cap = fetch_btc_prices()
+        output = build_market_snapshot()
 
-        # Combine all data
-        output = {
-            "timestamp": datetime.now().isoformat(),
-            "BTC": {
-                "prices": btc_prices,
-                "market_cap": market_cap,
-                "history": history
-            },
-            "ETFs": etfs
-        }
-
-        # Save to JSON
         with open(OUTPUT_FILE, "w") as f:
             json.dump(output, f, indent=4)
 
