@@ -13,6 +13,7 @@ const fmtNumber = new Intl.NumberFormat("en-US", { maximumFractionDigits: 2 });
 const refreshBtn = document.getElementById("refresh-btn");
 const toast = document.getElementById("toast");
 const timestampEl = document.getElementById("timestamp");
+const favoriteCurrencySelect = document.getElementById("favorite-currency");
 
 const CURRENCIES = [
     { code: "AUD", name: "Australian Dollar" },
@@ -35,7 +36,7 @@ const CURRENCIES = [
     { code: "SGD", name: "Singapore Dollar" },
     { code: "USD", name: "US Dollar" },
     { code: "BTC", name: "Bitcoin" }
-];
+].sort((a, b) => a.code.localeCompare(b.code)); // Alphabetical by code
 
 async function loadData() {
     if (state.loading) return;
@@ -98,8 +99,18 @@ function renderBtc(currencies) {
 
     const btcList = document.getElementById("btc-list");
     btcList.innerHTML = "";
+// Get pinned currency
+    const pinnedCurr = localStorage.getItem("pinned_currency");
+    let displayOrder = [...CURRENCIES];
+    
+    // Move pinned to top if selected
+    if (pinnedCurr) {
+        displayOrder = displayOrder.filter(c => c.code !== pinnedCurr);
+        const pinned = CURRENCIES.find(c => c.code === pinnedCurr);
+        if (pinned) displayOrder.unshift(pinned);
+    }
 
-    CURRENCIES.forEach((curr) => {
+    displayOrder.forEach((curr) => {
         const data = currencies[curr.code];
         if (!data) return;
 
@@ -111,8 +122,11 @@ function renderBtc(currencies) {
             ? fmtNumber.format(data.market_cap) 
             : "N/A";
 
+        const pinIcon = pinnedCurr === curr.code ? "📌 " : "";
+        
         item.innerHTML = `
-            <p class="currency-name">${curr.name} (${curr.code}): <span class="value">"${priceFormatted} ${curr.code}"</span></p>
+            <p class="currency-name">${pinIcon}${curr.name} (${curr.code}): <span class="value">${priceFormatted}</span></p>
+            <p class="mcap">Bitcoin market capitalization in ${curr.code}: <span class="value">${mcapFormatted}ode}"</span></p>
             <p class="mcap">Bitcoin market capitalization in ${curr.code}: <span class="value">"${mcapFormatted}"</span></p>
         `;
         
@@ -136,7 +150,37 @@ function setLoading(flag) {
 }
 
 refreshBtn.addEventListener("click", () => loadData());
+
+favoriteCurrencySelect.addEventListener("change", (e) => {
+    const selected = e.target.value;
+    if (selected) {
+        localStorage.setItem("pinned_currency", selected);
+    } else {
+        localStorage.removeItem("pinned_currency");
+    }
+    // Re-render to show pinned at top
+    if (state.lastData) {
+        renderBtc(state.lastData.currencies);
+    }
+});
+
 document.addEventListener("DOMContentLoaded", () => {
+    // Populate currency select
+    const select = document.getElementById("favorite-currency");
+    select.innerHTML = '<option value="">📌 Pin a currency...</option>';
+    CURRENCIES.forEach(curr => {
+        const option = document.createElement("option");
+        option.value = curr.code;
+        option.textContent = `${curr.code} - ${curr.name}`;
+        select.appendChild(option);
+    });
+    
+    // Set to previously pinned
+    const pinned = localStorage.getItem("pinned_currency");
+    if (pinned) {
+        select.value = pinned;
+    }
+    
     // Load cached data immediately if available
     loadCachedData();
     
