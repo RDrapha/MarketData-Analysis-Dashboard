@@ -126,8 +126,7 @@ function renderBtc(currencies) {
         
         item.innerHTML = `
             <p class="currency-name">${pinIcon}${curr.name} (${curr.code}): <span class="value">${priceFormatted}</span></p>
-            <p class="mcap">Bitcoin market capitalization in ${curr.code}: <span class="value">${mcapFormatted}ode}"</span></p>
-            <p class="mcap">Bitcoin market capitalization in ${curr.code}: <span class="value">"${mcapFormatted}"</span></p>
+            <p class="mcap">Bitcoin market capitalization in ${curr.code}: <span class="value">${mcapFormatted}</span></p>
         `;
         
         btcList.appendChild(item);
