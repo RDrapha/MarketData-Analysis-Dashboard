@@ -1,7 +1,7 @@
 const API_URL = "https://marketdata-analysis-dashboard-production.up.railway.app/api/market-data";
 // const API_URL = "http://localhost:8000/api/market-data"; // Local development
 const CACHE_KEY = "btc_prices_cache";
-const AUTO_UPDATE_INTERVAL = 30000; // 30 seconds
+const AUTO_UPDATE_INTERVAL = 120000; // 2 minutes (backend caches for 2 min)
 
 const state = {
     lastData: null,

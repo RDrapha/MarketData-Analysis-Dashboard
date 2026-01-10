@@ -1,4 +1,5 @@
 import os
+import time
 from pathlib import Path
 
 from fastapi import FastAPI
@@ -16,6 +17,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Cache settings
+CACHE_TTL = 120  # Cache for 2 minutes (seconds)
+_cache = {
+    "data": None,
+    "timestamp": 0
+}
+
 
 @app.get("/api/health")
 def health():
@@ -24,13 +32,20 @@ def health():
 
 @app.get("/api/market-data")
 def market_data():
+    global _cache
+    now = time.time()
+    
+    # Return cached data if still valid
+    if _cache["data"] and (now - _cache["timestamp"]) < CACHE_TTL:
+        return _cache["data"]
+    
+    # Fetch new data
     snapshot = build_market_snapshot()
     
-    # Extract only BTC prices and market caps, filter out history and ETFs
+    # Extract only BTC prices and market caps
     btc_data = snapshot.get("BTC", {})
     prices = btc_data.get("prices", {})
     
-    # Build clean output with only relevant currency data
     result = {
         "timestamp": snapshot.get("timestamp"),
         "currencies": {}
@@ -52,6 +67,10 @@ def market_data():
                 "price": price,
                 "market_cap": mcap
             }
+    
+    # Store in cache
+    _cache["data"] = result
+    _cache["timestamp"] = now
     
     return result
 
