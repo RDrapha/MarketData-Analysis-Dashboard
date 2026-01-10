@@ -1,4 +1,7 @@
-const API_URL = "http://localhost:8000/api/market-data";
+// Local development: 
+// const API_URL = "http://localhost:8000/api/market-data";
+// Production:
+const API_URL = "https://marketdata-analysis-dashboard-production.up.railway.app/api/market-data";
 const state = {
     lastData: null,
     loading: false
