@@ -46,7 +46,7 @@ async function loadData() {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         state.lastData = data;
-        renderTimestamp(data?.timestamp);
+        renderTimestamp();
         renderBtc(data?.currencies);
     } catch (err) {
         showToast(`Loading failed: ${err.message}`);
@@ -55,10 +55,9 @@ async function loadData() {
     }
 }
 
-function renderTimestamp(timestamp) {
-    if (!timestamp) return;
-    
-    const date = new Date(timestamp);
+function renderTimestamp() {
+    // Use current browser time, not server time (different timezones)
+    const date = new Date();
     const options = { 
         month: 'short', 
         day: 'numeric',
