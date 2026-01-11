@@ -247,10 +247,11 @@ canvas {
 
 .loading {
     text-align: center;
-    color: var(--muted);
+    color: var(--accent);
     font-size: 1rem;
     padding: 2rem;
     animation: pulse 1.5s infinite;
+    font-weight: 600;
 }
 
 @keyframes pulse {

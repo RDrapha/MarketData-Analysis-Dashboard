@@ -246,23 +246,47 @@ async function loadChartData() {
     const chartUrl = `${API_URL.replace("/market-data", "")}/btc-history?currency=${currency}&timeframe=${timeframe}`;
     
     const loadingEl = document.getElementById("chart-loading");
-    if (loadingEl) loadingEl.style.display = "block";
+    const chartCanvas = document.getElementById("btc-chart");
+    
+    if (loadingEl) {
+        loadingEl.style.display = "block";
+        loadingEl.textContent = "⏳ Loading chart data...";
+    }
+    
+    if (chartCanvas) chartCanvas.style.opacity = "0.5";
     
     try {
-        const res = await fetch(chartUrl, { cache: "no-store" });
+        // Set timeout to prevent hanging
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+        
+        const res = await fetch(chartUrl, { 
+            cache: "no-store",
+            signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
+        
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         
         if (data.data && data.data.length > 0) {
             renderChart(data.data, currency);
             if (loadingEl) loadingEl.style.display = "none";
+            if (chartCanvas) chartCanvas.style.opacity = "1";
         } else {
-            console.warn("No chart data available", data);
-            if (loadingEl) loadingEl.textContent = "No data available";
+            throw new Error("No chart data available");
         }
     } catch (err) {
         console.error("Chart loading failed:", err);
-        if (loadingEl) loadingEl.textContent = `Error: ${err.message}`;
+        if (loadingEl) {
+            if (err.name === "AbortError") {
+                loadingEl.textContent = "⚠️ Request timeout - using cached data if available";
+            } else {
+                loadingEl.textContent = `⚠️ Error: ${err.message}`;
+            }
+        }
+        if (chartCanvas) chartCanvas.style.opacity = "1";
     }
 }
 

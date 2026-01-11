@@ -155,10 +155,11 @@ def fetch_btc_chart_data(currency: str, timeframe: str):
     cache_key = f"{currency}_{timeframe}"
     now = time.time()
     
-    # Check cache (5 min TTL for chart data)
+    # Check cache (60 min TTL for chart data - much longer since it rarely changes)
     if cache_key in _CHART_CACHE:
         cached_data, cached_time = _CHART_CACHE[cache_key]
-        if (now - cached_time) < 300:  # 5 minutes
+        if (now - cached_time) < 3600:  # 60 minutes
+            print(f"[CHART CACHE HIT] {cache_key} (age: {now - cached_time:.0f}s)")
             return cached_data
     
     # Map timeframe to days
@@ -200,10 +201,14 @@ def fetch_btc_chart_data(currency: str, timeframe: str):
         
         # Cache the result
         _CHART_CACHE[cache_key] = (prices, now)
+        print(f"[CHART CACHE NEW] {cache_key} ({len(prices)} points)")
         
         return prices
     except Exception as e:
         print(f"Error fetching chart data: {e}")
+        # Return cached data even if expired (fallback)
+        if cache_key in _CHART_CACHE:
+            return _CHART_CACHE[cache_key][0]
         return []
 
 # ----------------------------
