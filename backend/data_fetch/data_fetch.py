@@ -192,7 +192,7 @@ def fetch_btc_chart_data(currency: str, timeframe: str):
     }
     
     try:
-        resp = requests.get(url, params=params, timeout=10)
+        resp = requests.get(url, params=params, timeout=8)
         resp.raise_for_status()
         data = resp.json()
         
@@ -208,6 +208,7 @@ def fetch_btc_chart_data(currency: str, timeframe: str):
         print(f"Error fetching chart data: {e}")
         # Return cached data even if expired (fallback)
         if cache_key in _CHART_CACHE:
+            print("[CHART CACHE FALLBACK] returning stale data")
             return _CHART_CACHE[cache_key][0]
         return []
 

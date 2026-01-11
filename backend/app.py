@@ -81,6 +81,7 @@ def btc_history(
     timeframe: str = Query("30", description="Days or 'max'")
 ):
     """Get BTC price history for a specific currency and timeframe"""
+    print(f"[btc-history] currency={currency} timeframe={timeframe}")
     try:
         history_data = fetch_btc_chart_data(currency, timeframe)
         return {
