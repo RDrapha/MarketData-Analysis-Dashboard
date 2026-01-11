@@ -292,3 +292,82 @@ canvas {
     }
 }
 
+/* Chart Section */
+.chart-section {
+    margin-top: 2rem;
+}
+
+.chart-section h2 {
+    margin: 0 0 1.5rem 0;
+    color: var(--text);
+    font-size: 1.4rem;
+}
+
+.chart-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.chart-currency-select {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.chart-currency-select label {
+    color: var(--muted);
+    font-weight: 600;
+}
+
+.chart-timeframes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.timeframe-btn {
+    background: var(--card-muted);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 0.5rem 0.9rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+}
+
+.timeframe-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.timeframe-btn.active {
+    background: var(--accent);
+    color: #0b1224;
+    border-color: var(--accent);
+}
+
+.chart-container {
+    position: relative;
+    width: 100%;
+    min-height: 400px;
+}
+
+@media (max-width: 720px) {
+    .chart-timeframes {
+        justify-content: center;
+    }
+    
+    .timeframe-btn {
+        padding: 0.4rem 0.7rem;
+        font-size: 0.75rem;
+    }
+    
+    .chart-container {
+        min-height: 300px;
+    }
+}
+

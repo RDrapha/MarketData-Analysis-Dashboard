@@ -189,4 +189,149 @@ document.addEventListener("DOMContentLoaded", () => {
     
     // Auto-update every 30 seconds
     setInterval(() => loadData(), AUTO_UPDATE_INTERVAL);
+    
+    // Initialize chart
+    initChart();
 });
+
+// ===============================
+// CHART FUNCTIONALITY
+// ===============================
+
+let chartInstance = null;
+let chartState = {
+    currency: "USD",
+    timeframe: "1d"
+};
+
+function initChart() {
+    const chartCurrencySelect = document.getElementById("chart-currency");
+    
+    // Populate currency dropdown for chart
+    CURRENCIES.forEach(curr => {
+        const option = document.createElement("option");
+        option.value = curr.code;
+        option.textContent = `${curr.name} (${curr.code})`;
+        chartCurrencySelect.appendChild(option);
+    });
+    
+    // Set default to USD
+    chartCurrencySelect.value = "USD";
+    
+    // Event listener for currency change
+    chartCurrencySelect.addEventListener("change", (e) => {
+        chartState.currency = e.target.value;
+        loadChartData();
+    });
+    
+    // Event listeners for timeframe buttons
+    document.querySelectorAll(".timeframe-btn").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+            // Remove active class from all
+            document.querySelectorAll(".timeframe-btn").forEach(b => b.classList.remove("active"));
+            // Add active to clicked
+            e.target.classList.add("active");
+            // Update state
+            chartState.timeframe = e.target.dataset.timeframe;
+            loadChartData();
+        });
+    });
+    
+    // Initial chart load
+    loadChartData();
+}
+
+async function loadChartData() {
+    const { currency, timeframe } = chartState;
+    const chartUrl = `${API_URL.replace("/market-data", "")}/btc-history?currency=${currency}&timeframe=${timeframe}`;
+    
+    try {
+        const res = await fetch(chartUrl, { cache: "no-store" });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        
+        if (data.data && data.data.length > 0) {
+            renderChart(data.data, currency);
+        } else {
+            console.warn("No chart data available");
+        }
+    } catch (err) {
+        console.error("Chart loading failed:", err);
+    }
+}
+
+function renderChart(dataPoints, currency) {
+    const ctx = document.getElementById("btc-chart").getContext("2d");
+    
+    // Destroy existing chart
+    if (chartInstance) {
+        chartInstance.destroy();
+    }
+    
+    // Format data for Chart.js
+    const labels = dataPoints.map(point => new Date(point[0]));
+    const prices = dataPoints.map(point => point[1]);
+    
+    chartInstance = new Chart(ctx, {
+        type: "line",
+        data: {
+            labels: labels,
+            datasets: [{
+                label: `Bitcoin Price (${currency})`,
+                data: prices,
+                borderColor: "#f59e0b",
+                backgroundColor: "rgba(245, 158, 11, 0.1)",
+                borderWidth: 2,
+                pointRadius: 0,
+                tension: 0.1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            aspectRatio: 2.5,
+            plugins: {
+                legend: {
+                    display: true,
+                    labels: {
+                        color: "#e2e8f0"
+                    }
+                },
+                tooltip: {
+                    mode: "index",
+                    intersect: false,
+                    callbacks: {
+                        label: function(context) {
+                            return `${currency} ${fmtNumber.format(context.parsed.y)}`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    type: "time",
+                    time: {
+                        unit: "day"
+                    },
+                    grid: {
+                        color: "rgba(255, 255, 255, 0.06)"
+                    },
+                    ticks: {
+                        color: "#9ca3af"
+                    }
+                },
+                y: {
+                    grid: {
+                        color: "rgba(255, 255, 255, 0.06)"
+                    },
+                    ticks: {
+                        color: "#9ca3af",
+                        callback: function(value) {
+                            return fmtNumber.format(value);
+                        }
+                    }
+                }
+            }
+        }
+    });
+}

@@ -9,6 +9,7 @@
 	<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
 	<link rel="stylesheet" href="styles.css">
 	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
 </head>
 <body>
     <header class="topbar">
@@ -26,6 +27,32 @@
         <div id="timestamp" class="timestamp"></div>
         <section class="card">
             <div id="btc-list"><p class="loading">⏳ Loading Bitcoin prices...</p></div>
+        </section>
+
+        <!-- Chart Section -->
+        <section class="card chart-section">
+            <h2>Bitcoin Price Chart</h2>
+            <div class="chart-controls">
+                <div class="chart-currency-select">
+                    <label for="chart-currency">Currency:</label>
+                    <select id="chart-currency" class="ghost"></select>
+                </div>
+                <div class="chart-timeframes">
+                    <button class="timeframe-btn" data-timeframe="1h">1H</button>
+                    <button class="timeframe-btn active" data-timeframe="1d">1D</button>
+                    <button class="timeframe-btn" data-timeframe="7d">7D</button>
+                    <button class="timeframe-btn" data-timeframe="1m">1M</button>
+                    <button class="timeframe-btn" data-timeframe="6m">6M</button>
+                    <button class="timeframe-btn" data-timeframe="ytd">YTD</button>
+                    <button class="timeframe-btn" data-timeframe="1y">1Y</button>
+                    <button class="timeframe-btn" data-timeframe="5y">5Y</button>
+                    <button class="timeframe-btn" data-timeframe="10y">10Y</button>
+                    <button class="timeframe-btn" data-timeframe="max">MAX</button>
+                </div>
+            </div>
+            <div class="chart-container">
+                <canvas id="btc-chart"></canvas>
+            </div>
         </section>
     </main>
 

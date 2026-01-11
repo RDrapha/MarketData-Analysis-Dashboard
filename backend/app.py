@@ -2,11 +2,11 @@ import os
 import time
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from backend.data_fetch.data_fetch import build_market_snapshot
+from backend.data_fetch.data_fetch import build_market_snapshot, fetch_btc_chart_data
 
 app = FastAPI(title="Market Data API", version="0.1.0")
 
@@ -73,6 +73,23 @@ def market_data():
     _cache["timestamp"] = now
     
     return result
+
+
+@app.get("/api/btc-history")
+def btc_history(
+    currency: str = Query("USD", description="Currency code (e.g., USD, EUR)"),
+    timeframe: str = Query("30", description="Days or 'max'")
+):
+    """Get BTC price history for a specific currency and timeframe"""
+    try:
+        history_data = fetch_btc_chart_data(currency, timeframe)
+        return {
+            "currency": currency.upper(),
+            "timeframe": timeframe,
+            "data": history_data
+        }
+    except Exception as e:
+        return {"error": str(e), "data": []}
 
 
 # Mount static files (frontend)

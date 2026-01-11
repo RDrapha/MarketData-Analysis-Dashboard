@@ -39,6 +39,9 @@ HISTORY_TTL_SECONDS = 1800  # 30 minutes
 _HISTORY_CACHE = None
 _HISTORY_CACHE_TS = 0
 
+# Chart data cache (per currency/timeframe)
+_CHART_CACHE = {}
+
 # Output JSON file
 OUTPUT_FILE = "market_data.json"
 
@@ -132,6 +135,76 @@ def build_market_snapshot(history_ttl_seconds: int = HISTORY_TTL_SECONDS):
         },
         "ETFs": etfs
     }
+
+# ----------------------------
+# FUNCTION TO FETCH BTC CHART DATA
+# ----------------------------
+def fetch_btc_chart_data(currency: str, timeframe: str):
+    """
+    Fetch BTC price history for charting.
+    
+    Args:
+        currency: Currency code (e.g., USD, EUR, BTC)
+        timeframe: Days as string or 'max'
+    
+    Returns:
+        List of [timestamp_ms, price] pairs
+    """
+    global _CHART_CACHE
+    
+    cache_key = f"{currency}_{timeframe}"
+    now = time.time()
+    
+    # Check cache (5 min TTL for chart data)
+    if cache_key in _CHART_CACHE:
+        cached_data, cached_time = _CHART_CACHE[cache_key]
+        if (now - cached_time) < 300:  # 5 minutes
+            return cached_data
+    
+    # Map timeframe to days
+    timeframe_map = {
+        "1h": "1",      # CoinGecko doesn't have hourly, use 1 day with 5min intervals
+        "1d": "1",
+        "7d": "7",
+        "1m": "30",
+        "6m": "180",
+        "ytd": "ytd",   # Not directly supported, we'll calculate
+        "1y": "365",
+        "5y": "1825",
+        "10y": "3650",
+        "max": "max"
+    }
+    
+    days = timeframe_map.get(timeframe, "30")
+    
+    # Handle YTD specially
+    if timeframe == "ytd":
+        from datetime import datetime
+        start_of_year = datetime(datetime.now().year, 1, 1)
+        days_since_jan1 = (datetime.now() - start_of_year).days
+        days = str(max(1, days_since_jan1))
+    
+    url = "https://api.coingecko.com/api/v3/coins/bitcoin/market_chart"
+    params = {
+        "vs_currency": currency.lower(),
+        "days": days
+    }
+    
+    try:
+        resp = requests.get(url, params=params, timeout=10)
+        resp.raise_for_status()
+        data = resp.json()
+        
+        # Extract prices array [[timestamp_ms, price], ...]
+        prices = data.get("prices", [])
+        
+        # Cache the result
+        _CHART_CACHE[cache_key] = (prices, now)
+        
+        return prices
+    except Exception as e:
+        print(f"Error fetching chart data: {e}")
+        return []
 
 # ----------------------------
 # MAIN LOOP FOR REALTIME UPDATES
