@@ -82,6 +82,7 @@ function renderTimestamp() {
     // Use current browser time, not server time (different timezones)
     const date = new Date();
     const options = { 
+        year: 'numeric',
         month: 'short', 
         day: 'numeric',
         hour: '2-digit',
