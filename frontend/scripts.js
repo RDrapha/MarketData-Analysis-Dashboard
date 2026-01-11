@@ -250,15 +250,17 @@ async function loadChartData() {
     
     if (loadingEl) {
         loadingEl.style.display = "block";
-        loadingEl.textContent = "⏳ Loading chart data...";
+        loadingEl.textContent = "⏳ Loading chart...";
     }
     
     if (chartCanvas) chartCanvas.style.opacity = "0.5";
     
     try {
-        // Set timeout to prevent hanging
+        // Set timeout to prevent hanging - only 8 seconds for responsiveness
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+        const timeoutId = setTimeout(() => controller.abort(), 8000);
+        
+        console.log(`Fetching chart: ${chartUrl}`);
         
         const res = await fetch(chartUrl, { 
             cache: "no-store",
@@ -267,10 +269,19 @@ async function loadChartData() {
         
         clearTimeout(timeoutId);
         
+        console.log(`Response status: ${res.status}`);
+        
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         
+        console.log(`Got data:`, data);
+        
+        if (data.error) {
+            throw new Error(data.error);
+        }
+        
         if (data.data && data.data.length > 0) {
+            console.log(`Rendering chart with ${data.data.length} points`);
             renderChart(data.data, currency);
             if (loadingEl) loadingEl.style.display = "none";
             if (chartCanvas) chartCanvas.style.opacity = "1";
@@ -281,9 +292,15 @@ async function loadChartData() {
         console.error("Chart loading failed:", err);
         if (loadingEl) {
             if (err.name === "AbortError") {
-                loadingEl.textContent = "⚠️ Request timeout - using cached data if available";
+                loadingEl.textContent = "⚠️ Timeout - skipping chart";
+                setTimeout(() => {
+                    if (loadingEl) loadingEl.style.display = "none";
+                }, 3000);
             } else {
-                loadingEl.textContent = `⚠️ Error: ${err.message}`;
+                loadingEl.textContent = `⚠️ ${err.message}`;
+                setTimeout(() => {
+                    if (loadingEl) loadingEl.style.display = "none";
+                }, 5000);
             }
         }
         if (chartCanvas) chartCanvas.style.opacity = "1";

@@ -89,6 +89,16 @@ def btc_history(
             "data": history_data
         }
     except Exception as e:
+        print(f"ERROR in /api/btc-history: {e}")
+        import traceback
+        traceback.print_exc()
+        return {
+            "currency": currency.upper(),
+            "timeframe": timeframe,
+            "data": [],
+            "error": str(e)
+        }
+    except Exception as e:
         return {"error": str(e), "data": []}
 
 
