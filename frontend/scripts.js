@@ -2,6 +2,7 @@ const API_URL = "https://marketdata-analysis-dashboard-production.up.railway.app
 // const API_URL = "http://localhost:8000/api/market-data"; // Local development
 const CACHE_KEY = "btc_prices_cache";
 const AUTO_UPDATE_INTERVAL = 120000; // 2 minutes (backend caches for 2 min)
+const ENABLE_CHART = false; // toggle chart functionality
 
 const state = {
     lastData: null,
@@ -189,9 +190,11 @@ document.addEventListener("DOMContentLoaded", () => {
     
     // Auto-update every 30 seconds
     setInterval(() => loadData(), AUTO_UPDATE_INTERVAL);
-    
-    // Initialize chart
-    initChart();
+
+    // Skip chart while it is disabled
+    if (ENABLE_CHART) {
+        initChart();
+    }
 });
 
 // ===============================
@@ -242,6 +245,7 @@ function initChart() {
 }
 
 async function loadChartData() {
+    if (!ENABLE_CHART) return;
     const { currency, timeframe } = chartState;
     const chartUrl = `${API_URL.replace("/market-data", "")}/btc-history?currency=${currency}&timeframe=${timeframe}`;
     
