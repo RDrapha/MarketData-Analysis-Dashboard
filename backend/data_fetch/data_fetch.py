@@ -1,8 +1,9 @@
 import requests
 import json
+import time
+import threading
 from datetime import datetime
 import yfinance as yf
-import time
 
 # ----------------------------
 # SETTINGS
@@ -41,6 +42,11 @@ _HISTORY_CACHE_TS = 0
 
 # Chart data cache (per currency/timeframe)
 _CHART_CACHE = {}
+_CHART_INFLIGHT = set()
+
+CHART_TTL_SECONDS = 3600        # keep chart data for 60 minutes
+CHART_REFRESH_AFTER = 900       # if older than 15 minutes, trigger background refresh
+CHART_TIMEOUT_SECONDS = 12      # request timeout for chart fetch
 
 # Output JSON file
 OUTPUT_FILE = "market_data.json"
@@ -155,12 +161,23 @@ def fetch_btc_chart_data(currency: str, timeframe: str):
     cache_key = f"{currency}_{timeframe}"
     now = time.time()
     
-    # Check cache (60 min TTL for chart data - much longer since it rarely changes)
+    # If we have cache, return immediately (even if stale) to avoid blocking UI
     if cache_key in _CHART_CACHE:
         cached_data, cached_time = _CHART_CACHE[cache_key]
-        if (now - cached_time) < 3600:  # 60 minutes
-            print(f"[CHART CACHE HIT] {cache_key} (age: {now - cached_time:.0f}s)")
-            return cached_data
+        age = now - cached_time
+        print(f"[CHART CACHE HIT] {cache_key} (age: {age:.0f}s)")
+
+        # Trigger background refresh if stale and not already refreshing
+        if age > CHART_REFRESH_AFTER and cache_key not in _CHART_INFLIGHT:
+            _CHART_INFLIGHT.add(cache_key)
+            threading.Thread(
+                target=_refresh_chart_data,
+                args=(currency, timeframe, cache_key),
+                daemon=True,
+            ).start()
+
+        # Serve cached data immediately
+        return cached_data
     
     # Map timeframe to days
     timeframe_map = {
@@ -192,7 +209,7 @@ def fetch_btc_chart_data(currency: str, timeframe: str):
     }
     
     try:
-        resp = requests.get(url, params=params, timeout=8)
+        resp = requests.get(url, params=params, timeout=CHART_TIMEOUT_SECONDS)
         resp.raise_for_status()
         data = resp.json()
         
@@ -211,6 +228,16 @@ def fetch_btc_chart_data(currency: str, timeframe: str):
             print("[CHART CACHE FALLBACK] returning stale data")
             return _CHART_CACHE[cache_key][0]
         return []
+
+
+def _refresh_chart_data(currency: str, timeframe: str, cache_key: str):
+    """Background refresh to avoid blocking user requests."""
+    try:
+        print(f"[CHART REFRESH] start {cache_key}")
+        fetch_btc_chart_data(currency, timeframe)
+    finally:
+        _CHART_INFLIGHT.discard(cache_key)
+        print(f"[CHART REFRESH] done {cache_key}")
 
 # ----------------------------
 # MAIN LOOP FOR REALTIME UPDATES
