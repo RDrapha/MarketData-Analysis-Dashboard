@@ -245,6 +245,9 @@ async function loadChartData() {
     const { currency, timeframe } = chartState;
     const chartUrl = `${API_URL.replace("/market-data", "")}/btc-history?currency=${currency}&timeframe=${timeframe}`;
     
+    const loadingEl = document.getElementById("chart-loading");
+    if (loadingEl) loadingEl.style.display = "block";
+    
     try {
         const res = await fetch(chartUrl, { cache: "no-store" });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -252,27 +255,36 @@ async function loadChartData() {
         
         if (data.data && data.data.length > 0) {
             renderChart(data.data, currency);
+            if (loadingEl) loadingEl.style.display = "none";
         } else {
-            console.warn("No chart data available");
+            console.warn("No chart data available", data);
+            if (loadingEl) loadingEl.textContent = "No data available";
         }
     } catch (err) {
         console.error("Chart loading failed:", err);
+        if (loadingEl) loadingEl.textContent = `Error: ${err.message}`;
     }
 }
 
 function renderChart(dataPoints, currency) {
-    const ctx = document.getElementById("btc-chart").getContext("2d");
+    const ctx = document.getElementById("btc-chart");
+    if (!ctx) {
+        console.error("Chart canvas not found");
+        return;
+    }
+    
+    const context = ctx.getContext("2d");
     
     // Destroy existing chart
     if (chartInstance) {
         chartInstance.destroy();
     }
     
-    // Format data for Chart.js
+    // Format data for Chart.js - CoinGecko returns [[timestamp_ms, price], ...]
     const labels = dataPoints.map(point => new Date(point[0]));
     const prices = dataPoints.map(point => point[1]);
     
-    chartInstance = new Chart(ctx, {
+    chartInstance = new Chart(context, {
         type: "line",
         data: {
             labels: labels,
@@ -280,27 +292,44 @@ function renderChart(dataPoints, currency) {
                 label: `Bitcoin Price (${currency})`,
                 data: prices,
                 borderColor: "#f59e0b",
-                backgroundColor: "rgba(245, 158, 11, 0.1)",
+                backgroundColor: "rgba(245, 158, 11, 0.05)",
                 borderWidth: 2,
                 pointRadius: 0,
-                tension: 0.1
+                pointHoverRadius: 6,
+                tension: 0.1,
+                fill: true
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: true,
-            aspectRatio: 2.5,
             plugins: {
                 legend: {
                     display: true,
                     labels: {
-                        color: "#e2e8f0"
+                        color: "#e2e8f0",
+                        font: {
+                            family: "'Space Grotesk', sans-serif",
+                            size: 12
+                        }
                     }
                 },
                 tooltip: {
                     mode: "index",
                     intersect: false,
+                    backgroundColor: "rgba(11, 18, 36, 0.8)",
+                    borderColor: "#f59e0b",
+                    borderWidth: 1,
+                    titleColor: "#e2e8f0",
+                    bodyColor: "#e2e8f0",
                     callbacks: {
+                        title: function(context) {
+                            return new Date(context[0].label).toLocaleDateString("en-US", { 
+                                month: "short", 
+                                day: "numeric", 
+                                year: "numeric" 
+                            });
+                        },
                         label: function(context) {
                             return `${currency} ${fmtNumber.format(context.parsed.y)}`;
                         }
@@ -311,21 +340,34 @@ function renderChart(dataPoints, currency) {
                 x: {
                     type: "time",
                     time: {
-                        unit: "day"
+                        unit: "auto",
+                        displayFormats: {
+                            hour: "MMM d, HH:mm",
+                            day: "MMM d",
+                            week: "MMM d",
+                            month: "MMM yyyy",
+                            year: "yyyy"
+                        }
                     },
                     grid: {
-                        color: "rgba(255, 255, 255, 0.06)"
+                        color: "rgba(255, 255, 255, 0.05)"
                     },
                     ticks: {
-                        color: "#9ca3af"
+                        color: "#9ca3af",
+                        font: {
+                            family: "'Space Grotesk', sans-serif"
+                        }
                     }
                 },
                 y: {
                     grid: {
-                        color: "rgba(255, 255, 255, 0.06)"
+                        color: "rgba(255, 255, 255, 0.05)"
                     },
                     ticks: {
                         color: "#9ca3af",
+                        font: {
+                            family: "'Space Grotesk', sans-serif"
+                        },
                         callback: function(value) {
                             return fmtNumber.format(value);
                         }
