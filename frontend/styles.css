@@ -165,7 +165,7 @@ tr:hover td {
 }
 
 .ghost {
-	background: rgba(255, 255, 255, 0.04);
+	background: var(--card);
 	border: 1px solid var(--border);
 	color: var(--text);
 	padding: 0.5rem 0.8rem;
@@ -182,6 +182,17 @@ tr:hover td {
 select.ghost {
 	appearance: none;
 	padding-right: 2rem;
+	background-color: var(--card);
+	color: var(--text);
+}
+
+select.ghost option {
+	background-color: #1e293b;
+	color: #e2e8f0;
+}
+
+select.ghost option:first-child {
+	color: var(--muted);
 }
 
 .toast {

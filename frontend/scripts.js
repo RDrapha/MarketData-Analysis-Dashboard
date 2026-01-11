@@ -8,7 +8,7 @@ const state = {
     loading: false
 };
 
-const fmtNumber = new Intl.NumberFormat("en-US", { maximumFractionDigits: 2 });
+const fmtNumber = new Intl.NumberFormat("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 const refreshBtn = document.getElementById("refresh-btn");
 const toast = document.getElementById("toast");
