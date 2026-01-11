@@ -36,7 +36,7 @@ const CURRENCIES = [
     { code: "SGD", name: "Singapore Dollar" },
     { code: "USD", name: "US Dollar" },
     { code: "BTC", name: "Bitcoin" }
-].sort((a, b) => a.code.localeCompare(b.code)); // Alphabetical by code
+].sort((a, b) => a.name.localeCompare(b.name)); // Alphabetical by name
 
 async function loadData() {
     if (state.loading) return;
@@ -125,8 +125,8 @@ function renderBtc(currencies) {
         const pinIcon = pinnedCurr === curr.code ? "📌 " : "";
         
         item.innerHTML = `
-            <p class="currency-name">${pinIcon}${curr.name} (${curr.code}): <span class="value">${priceFormatted}</span></p>
-            <p class="mcap">Bitcoin market capitalization in ${curr.code}: <span class="value">${mcapFormatted}</span></p>
+            <p class="currency-name">${pinIcon}${curr.name}: <span class="value">${curr.code} ${priceFormatted}</span></p>
+            <p class="mcap">Bitcoin market capitalization: <span class="value">${curr.code} ${mcapFormatted}</span></p>
         `;
         
         btcList.appendChild(item);
