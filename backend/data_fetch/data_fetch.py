@@ -48,6 +48,19 @@ CHART_TTL_SECONDS = 3600        # keep chart data for 60 minutes
 CHART_REFRESH_AFTER = 900       # if older than 15 minutes, trigger background refresh
 CHART_TIMEOUT_SECONDS = 12      # request timeout for chart fetch
 
+
+def _fetch_chart_network(currency: str, days: str):
+    """Direct network call to CoinGecko market_chart."""
+    url = "https://api.coingecko.com/api/v3/coins/bitcoin/market_chart"
+    params = {
+        "vs_currency": currency.lower(),
+        "days": days
+    }
+    resp = requests.get(url, params=params, timeout=CHART_TIMEOUT_SECONDS)
+    resp.raise_for_status()
+    data = resp.json()
+    return data.get("prices", [])
+
 # Output JSON file
 OUTPUT_FILE = "market_data.json"
 
@@ -202,24 +215,10 @@ def fetch_btc_chart_data(currency: str, timeframe: str):
         days_since_jan1 = (datetime.now() - start_of_year).days
         days = str(max(1, days_since_jan1))
     
-    url = "https://api.coingecko.com/api/v3/coins/bitcoin/market_chart"
-    params = {
-        "vs_currency": currency.lower(),
-        "days": days
-    }
-    
     try:
-        resp = requests.get(url, params=params, timeout=CHART_TIMEOUT_SECONDS)
-        resp.raise_for_status()
-        data = resp.json()
-        
-        # Extract prices array [[timestamp_ms, price], ...]
-        prices = data.get("prices", [])
-        
-        # Cache the result
+        prices = _fetch_chart_network(currency, days)
         _CHART_CACHE[cache_key] = (prices, now)
         print(f"[CHART CACHE NEW] {cache_key} ({len(prices)} points)")
-        
         return prices
     except Exception as e:
         print(f"Error fetching chart data: {e}")
@@ -227,6 +226,15 @@ def fetch_btc_chart_data(currency: str, timeframe: str):
         if cache_key in _CHART_CACHE:
             print("[CHART CACHE FALLBACK] returning stale data")
             return _CHART_CACHE[cache_key][0]
+        # last-resort fallback: two-point sparkline using current price
+        try:
+            latest_prices, _ = fetch_btc_prices()
+            val = latest_prices.get(currency.lower())
+            if val:
+                now_ms = int(time.time() * 1000)
+                return [[now_ms - 3600_000, val], [now_ms, val]]
+        except Exception:
+            pass
         return []
 
 
@@ -234,10 +242,31 @@ def _refresh_chart_data(currency: str, timeframe: str, cache_key: str):
     """Background refresh to avoid blocking user requests."""
     try:
         print(f"[CHART REFRESH] start {cache_key}")
-        fetch_btc_chart_data(currency, timeframe)
+        # Force network fetch ignoring cache
+        timeframe_map = {
+            "1h": "1",
+            "1d": "1",
+            "7d": "7",
+            "1m": "30",
+            "6m": "180",
+            "ytd": "ytd",
+            "1y": "365",
+            "5y": "1825",
+            "10y": "3650",
+            "max": "max",
+        }
+
+        days = timeframe_map.get(timeframe, "30")
+        if timeframe == "ytd":
+            start_of_year = datetime(datetime.now().year, 1, 1)
+            days_since_jan1 = (datetime.now() - start_of_year).days
+            days = str(max(1, days_since_jan1))
+
+        prices = _fetch_chart_network(currency, days)
+        _CHART_CACHE[cache_key] = (prices, time.time())
+        print(f"[CHART REFRESH DONE] {cache_key} ({len(prices)} points)")
     finally:
         _CHART_INFLIGHT.discard(cache_key)
-        print(f"[CHART REFRESH] done {cache_key}")
 
 # ----------------------------
 # MAIN LOOP FOR REALTIME UPDATES
